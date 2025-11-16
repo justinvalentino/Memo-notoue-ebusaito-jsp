@@ -1,0 +1,1 @@
+<img src="{{ asset('favicon.ico') }}" alt="Memo App Logo" class="w-16 h-16" {{ $attributes }}>
