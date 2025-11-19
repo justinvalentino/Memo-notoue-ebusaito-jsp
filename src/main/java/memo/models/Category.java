@@ -9,6 +9,8 @@ public class Category {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
+    private int noteCount;
+
     public int getId() {
         return id;
     }
@@ -42,5 +44,12 @@ public class Category {
     }
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public int getNoteCount() {
+        return noteCount;
+    }
+    public void setNoteCount(int noteCount) {
+        this.noteCount = noteCount;
     }
 }

@@ -1,9 +1,14 @@
-package main.java.memo.controllers;
+package memo.controllers;
 
-import main.java.memo.dao.CategoryDAO;
-import main.java.memo.models.Category;
+import memo.dao.CategoryDAO;
+import memo.models.Category;
 
-import jakarta.servlet.http.*;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -53,7 +58,7 @@ public class CategoryController extends HttpServlet {
 
     private void listCategories(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int currentUserId = 1; // TODO: Ganti dengan ID user
+        int currentUserId = 1;
         List<Category> categoryList = categoryDAO.getCategoriesByUserId(currentUserId);
         request.setAttribute("categoryList", categoryList);
         RequestDispatcher dispatcher = request.getRequestDispatcher("/categories/index.jsp");
@@ -69,7 +74,7 @@ public class CategoryController extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        int currentUserId = 1; // TODO: Ganti dengan ID user
+        int currentUserId = 1;
         Category category = categoryDAO.getCategoryById(id, currentUserId);
         
         if (category != null) {
@@ -81,24 +86,42 @@ public class CategoryController extends HttpServlet {
         }
     }
 
+    // Di dalam file CategoryController.java
     private void createCategoryAction(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
         String name = request.getParameter("name");
-        int currentUserId = 1; // TODO: Ganti dengan ID user
+        
+        if (name == null || name.trim().isEmpty()) {
+            // --- KIRIM ERROR ---
+            request.setAttribute("errorMessage", "Category name cannot be empty.");
+            // Tampilkan halaman lagi, jangan redirect
+            listCategories(request, response);
+            return;
+        }
+        
+        int currentUserId = 1; 
 
         Category newCategory = new Category();
         newCategory.setName(name);
         newCategory.setUsersId(currentUserId);
         
         categoryDAO.createCategory(newCategory);
-        response.sendRedirect(request.getContextPath() + "/categories");
+        
+        // --- KIRIM PESAN SUKSES ---
+        // Cara termudah adalah mengirimnya sebagai atribut request SEBELUM forward
+        request.setAttribute("successMessage", "Category created successfully!");
+        listCategories(request, response);
+        
+        // (Cara yang lebih canggih menggunakan 'flash message' via Session,
+        // tapi ini sudah cukup untuk sekarang)
     }
 
     private void updateCategoryAction(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         String name = request.getParameter("name");
-        int currentUserId = 1; // TODO: Ganti dengan ID user
+        int currentUserId = 1;
 
         Category category = new Category();
         category.setId(id);
@@ -112,7 +135,7 @@ public class CategoryController extends HttpServlet {
     private void deleteCategoryAction(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        int currentUserId = 1; // TODO: Ganti dengan ID user
+        int currentUserId = 1;
         
         categoryDAO.deleteCategory(id, currentUserId);
         response.sendRedirect(request.getContextPath() + "/categories");

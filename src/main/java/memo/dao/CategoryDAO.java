@@ -63,24 +63,40 @@ public boolean deleteCategory(int categoryId, int userId) {
 }
 
 // READ
-public Category getCategoryById(int categoryId, int userId) {
-    String sql = "SELECT * FROM categories WHERE id = ? AND usersId = ?";
-    Category category = null;
+public List<Category> getCategoriesByUserId(int userId) {
+    List<Category> categories = new ArrayList<>();
+    
+    // Query ini mengambil kategori DAN menghitung note (yang tidak diarsip/dihapus)
+    String sql = "SELECT " +
+                 "    c.id, c.name, c.usersId, c.createdAt, c.updatedAt, " +
+                 "    COUNT(n.id) as note_count " +
+                 "FROM categories c " +
+                 "LEFT JOIN notes n ON c.id = n.categoriesId AND n.isDeleted = false AND n.isArchived = false " +
+                 "WHERE c.usersId = ? " +
+                 "GROUP BY c.id, c.name, c.usersId, c.createdAt, c.updatedAt " +
+                 "ORDER BY c.name";
+
     try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
         
-        stmt.setInt(1, categoryId);
-        stmt.setInt(2, userId);
+        stmt.setInt(1, userId);
         ResultSet rs = stmt.executeQuery();
 
-        if (rs.next()) {
-            category = new Category();
+        while (rs.next()) {
+            Category category = new Category();
             category.setId(rs.getInt("id"));
             category.setName(rs.getString("name"));
             category.setUsersId(rs.getInt("usersId"));
+            category.setCreatedAt(rs.getTimestamp("createdAt"));
+            category.setUpdatedAt(rs.getTimestamp("updatedAt"));
+            
+            // Set hasil hitungan
+            category.setNoteCount(rs.getInt("note_count"));
+            
+            categories.add(category);
         }
     } catch (SQLException e) {
         e.printStackTrace();
     }
-    return category;
+    return categories;
 }
