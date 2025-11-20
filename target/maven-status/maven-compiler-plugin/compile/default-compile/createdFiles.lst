@@ -1,3 +1,11 @@
+memo\controllers\NoteController.class
+memo\dao\NoteDAO.class
+memo\controllers\CategoryController.class
+memo\controllers\ProfileController.class
 memo\controllers\AuthController.class
+memo\models\Note.class
 memo\dao\UserDAO.class
+memo\db\DBConnection.class
 memo\models\User.class
+memo\dao\CategoryDAO.class
+memo\models\Category.class

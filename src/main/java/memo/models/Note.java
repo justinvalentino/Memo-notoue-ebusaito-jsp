@@ -8,13 +8,25 @@ public class Note {
     private String content;
     private boolean isArchived;
     private boolean isDeleted;
-    private int usersId;       // FK ke users
-    private Integer categoriesId; // nullable FK ke categories
+    private int usersId;             // FK ke users
+    private Integer categoriesId;    // nullable FK ke categories
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
     public Note() {}
 
+    // Constructor used by DAO mapping (matches NoteDAO.mapNote)
+    public Note(int id, int usersId, Integer categoriesId, String title, String content, int isArchivedInt, Timestamp createdAt) {
+        this.id = id;
+        this.usersId = usersId;
+        this.categoriesId = categoriesId;
+        this.title = title;
+        this.content = content;
+        this.isArchived = (isArchivedInt != 0);
+        this.createdAt = createdAt;
+    }
+
+    // Basic getters/setters (keep existing names) plus adapter methods expected by DAO
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -30,6 +42,7 @@ public class Note {
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
 
+    // keep original names
     public int getUsersId() { return usersId; }
     public void setUsersId(int usersId) { this.usersId = usersId; }
 
@@ -41,4 +54,10 @@ public class Note {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    // Adapter methods expected by the DAOs I generated:
+    public int getUserId() { return usersId; }            // DAOs use getUserId()
+    public Integer getCategoryId() { return categoriesId; } // DAOs use getCategoryId()
+    public void setUserId(int userId) { this.usersId = userId; }
+    public void setCategoryId(Integer categoryId) { this.categoriesId = categoryId; }
 }
