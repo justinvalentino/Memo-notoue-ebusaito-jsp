@@ -1,4 +1,4 @@
-package main.java.memo.models;
+package memo.models;
 
 import java.sql.Timestamp;
 

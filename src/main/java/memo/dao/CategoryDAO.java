@@ -1,102 +1,95 @@
-package main.java.memo.dao; // <-- Bagian 1: Deklarasi Package
+package memo.dao;
 
-// <-- Bagian 2: Semua Import yang Dibutuhkan -->
 import memo.db.DBConnection;
 import memo.models.Category;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-// CREATE
-public boolean createCategory(Category category) {
-    String sql = "INSERT INTO categories (name, usersId) VALUES (?, ?)";
-    try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setString(1, category.getName());
-        stmt.setInt(2, category.getUsersId());
-        
-        int rowsInserted = stmt.executeUpdate();
-        return rowsInserted > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
-    }
-}
+public class CategoryDAO {
 
-// UPDATE
-public boolean updateCategory(Category category) {
-    String sql = "UPDATE categories SET name = ? WHERE id = ? AND usersId = ?";
-    try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setString(1, category.getName());
-        stmt.setInt(2, category.getId());
-        stmt.setInt(3, category.getUsersId()); // Security check
-        
-        int rowsUpdated = stmt.executeUpdate();
-        return rowsUpdated > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
-    }
-}
+    public List<Category> getCategoriesByUserId(int userId) {
+        List<Category> categories = new ArrayList<>();
 
-// DELETE
-public boolean deleteCategory(int categoryId, int userId) {
-    String sql = "DELETE FROM categories WHERE id = ? AND usersId = ?";
-    try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setInt(1, categoryId);
-        stmt.setInt(2, userId);
-        
-        int rowsDeleted = stmt.executeUpdate();
-        return rowsDeleted > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
-    }
-}
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT * FROM categories WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
 
-// READ
-public List<Category> getCategoriesByUserId(int userId) {
-    List<Category> categories = new ArrayList<>();
-    
-    // Query ini mengambil kategori DAN menghitung note (yang tidak diarsip/dihapus)
-    String sql = "SELECT " +
-                 "    c.id, c.name, c.usersId, c.createdAt, c.updatedAt, " +
-                 "    COUNT(n.id) as note_count " +
-                 "FROM categories c " +
-                 "LEFT JOIN notes n ON c.id = n.categoriesId AND n.isDeleted = false AND n.isArchived = false " +
-                 "WHERE c.usersId = ? " +
-                 "GROUP BY c.id, c.name, c.usersId, c.createdAt, c.updatedAt " +
-                 "ORDER BY c.name";
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                categories.add(new Category(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getString("name")
+                ));
+            }
 
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        
-        stmt.setInt(1, userId);
-        ResultSet rs = stmt.executeQuery();
-
-        while (rs.next()) {
-            Category category = new Category();
-            category.setId(rs.getInt("id"));
-            category.setName(rs.getString("name"));
-            category.setUsersId(rs.getInt("usersId"));
-            category.setCreatedAt(rs.getTimestamp("createdAt"));
-            category.setUpdatedAt(rs.getTimestamp("updatedAt"));
-            
-            // Set hasil hitungan
-            category.setNoteCount(rs.getInt("note_count"));
-            
-            categories.add(category);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+
+        return categories;
     }
-    return categories;
+
+    // REQUIRED BY CONTROLLER
+    public Category getCategoryById(int userId, int categoryId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT * FROM categories WHERE user_id = ? AND id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setInt(2, categoryId);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Category(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    rs.getString("name")
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public void createCategory(Category category) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "INSERT INTO categories (user_id, name) VALUES (?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, category.getUserId());
+            stmt.setString(2, category.getName());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateCategory(Category category) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "UPDATE categories SET name=? WHERE id=? AND user_id=?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, category.getName());
+            stmt.setInt(2, category.getId());
+            stmt.setInt(3, category.getUserId());
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteCategory(int userId, int categoryId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "DELETE FROM categories WHERE id=? AND user_id=?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, categoryId);
+            stmt.setInt(2, userId);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

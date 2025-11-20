@@ -1,0 +1,3 @@
+memo\controllers\AuthController.class
+memo\dao\UserDAO.class
+memo\models\User.class
