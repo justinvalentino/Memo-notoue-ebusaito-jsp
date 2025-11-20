@@ -1,4 +1,4 @@
-package main.java.memo.controllers;
+package memo.controllers;
 
 import memo.dao.UserDAO;
 import memo.models.User;
